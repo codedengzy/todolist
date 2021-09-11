@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width='device-width', initial-scale=1.0">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/index.css">
+    <title>todos</title>
+</head>
+
+<body>
+    <div id="app">
+        <section id="todoapp" class="todoapp">
+            <header class="header">
+                <h1>todos</h1>
+                <input placeholder="What needs to be done?" @keyup.enter="addTodo(event)" class="new-todo">
+            </header>
+            <section class="main">
+                <input v-model="toggleState" 
+                id="toggle-all" type="checkbox" class="toggle-all">
+                <label for="toggle-all">Mark all as complete</label>
+                <ul class="todo-list">
+                    <li :key="index" 
+                    v-for="(item,index) in todos" 
+                    :class="{completed:item.completed,editing:item===currentEditing}">
+                        <div class="view">
+                            <input type="checkbox" v-model="item.completed" class="toggle">
+                            <label @dblclick="currentEditing=item">{{item.title}}</label>
+                            <button class="destroy" @click="destroyTodo(index)"></button>
+                        </div>
+                        <input 
+                        :value="item.title"  
+                        @keyup.esc="currentEditing=null"
+                        @keyup.enter="saveEdit(item,index,$event)" 
+                        @blur="saveEdit(item,index,$event)"
+                        class="edit">
+                     </li>
+                </ul>
+            </section>
+            <footer class="footer">
+                <span class="todo-count">
+                    <strong>{{leftCount}}</strong> item left</span>
+                <ul class="filters">
+                    <li><a href="#/" class="selected">All</a></li>
+                    <li><a href="#/active">Active</a></li>
+                    <li><a href="#/completed">Completed</a></li>
+                </ul>
+                <button @click="clearCompleted" class="clear-completed">Clear completed</button>
+            </footer>
+        </section>
+
+    </div>
+</body>
+<script src=" https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                currentEditing:null,
+                todos: [{
+                    id: 1,
+                    title: '吃饭',
+                    completed: false
+                }, {
+                    id: 2,
+                    title: '睡觉',
+                    completed: false
+                }, {
+                    id: 3,
+                    title: '打豆豆',
+                    completed: true
+                }]
+            }
+        },
+        watch:{
+            // 监听数组的值变化
+            // todos:function(val){
+            //     console.log(val);
+            // }
+        },
+        methods: {
+            // 添加todos
+            // 
+            addTodo:function(e){
+                // console.log(e.target.value); // 获取输入的值
+                let todoVal=e.target.value;
+                if (!todoVal) {
+                    return
+                }
+                const lastTodo = this.todos[this.todos.length-1];
+                const id=lastTodo?lastTodo.id+1:1;
+                this.todos.push({
+                    id:id,
+                    title:todoVal,
+                    completed:false
+                }); 
+                e.target.value='';
+            },
+            //移除某项
+            destroyTodo:function(index){
+                // splice(start,delCount) start开始删除的位置 delCount删除的元素个数
+                this.todos.splice(index,1);
+            },
+            // 保存编辑
+            saveEdit:function(item,index,e){
+                let editText=e.target.value.trim();
+                // 判断文本框值为空移除该项
+                !editText.length?this.todos.splice(index,1):item.title=editText;
+                this.currentEditing=null;
+            },
+            // 清除已完成的项
+            clearCompleted:function(){
+                // 返回未完成的项
+               this.todos = this.todos.filter(item=>!item.completed);
+            },
+            // fn:function (e) { 
+            //     console.log(e.target.value);
+            //  }
+        },
+        computed:{
+            // 未完成的todo
+            leftCount:function(){
+                // 过滤掉等于false的，执行过滤条件时true所以completed为false时执行过滤，剩下的是completed=true的
+                return this.todos.filter(item=>!item.completed).length;
+            },
+            toggleState:{
+                // every() 方法测试一个数组内的所有元素是否都能通过某个指定函数的测试
+                get(){
+                    console.log(123456);
+                    // 当todos没有通过测试，返回false 否则返回true
+                    return this.todos.every(item=>item.completed);
+                },
+                set(val){
+                    console.log(val);
+                    // 当toggle-all为false时，遍历todos将取消全选，否则全选
+                    this.todos.forEach(todo=>todo.completed=val);
+                }
+            }
+        }
+    });
+</script>
+
+</html>
